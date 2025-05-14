@@ -12,5 +12,3 @@ Một máy tính bỏ túi đơn giản được viết bằng Python. Hỗ tr�
 ## 📦 Yêu cầu
 
 - Python 3.x
-
-## 🛠️ Cài đặt và chạy chương trình# Test
