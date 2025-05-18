@@ -1,150 +1,126 @@
 import tkinter as tk
-from tkinter import messagebox, scrolledtext
+from tkinter import messagebox
 import math
 
-# Dữ liệu
-calculation_history = []
+history = []
 
-# Giao diện
-root = tk.Tk()
-root.title("🧮 Máy tính nâng cao")
-root.geometry("520x670")
-root.attributes('-alpha', 0.95)  # Giao diện trong suốt
-
-current_theme = "light"
-
-# Hàm xử lý
-def update_history(entry):
-    calculation_history.append(entry)
-    history_box.config(state='normal')
-    history_box.insert(tk.END, entry + '\n')
-    history_box.config(state='disabled')
+def update_result(value):
+    result.set(value)
+    history.append(value)
+    history_listbox.insert(tk.END, value)
 
 def clear_history():
-    calculation_history.clear()
-    history_box.config(state='normal')
-    history_box.delete(1.0, tk.END)
-    history_box.config(state='disabled')
+    history.clear()
+    history_listbox.delete(0, tk.END)
 
-def calculate(op):
+def calculate_expression():
+    expr = expression_entry.get()
     try:
-        num1 = float(entry1.get())
-        num2 = float(entry2.get()) if entry2.get() else 0
+        res = eval(expr, {"__builtins__": {}}, math.__dict__)
+        update_result(f"{expr} = {res}")
+    except Exception as e:
+        messagebox.showerror("Lỗi", f"Biểu thức không hợp lệ.\n{e}")
 
-        if op == '+':
-            res = num1 + num2
-            desc = f"{num1} + {num2} = {res}"
-        elif op == '-':
-            res = num1 - num2
-            desc = f"{num1} - {num2} = {res}"
-        elif op == '*':
-            res = num1 * num2
-            desc = f"{num1} * {num2} = {res}"
-        elif op == '/':
-            if num2 == 0:
-                raise ZeroDivisionError
-            res = num1 / num2
-            desc = f"{num1} / {num2} = {res}"
-        elif op == '^':
-            res = num1 ** num2
-            desc = f"{num1} ^ {num2} = {res}"
-        elif op == '%':
-            res = (num1 / 100) * num2
-            desc = f"{num1}% của {num2} = {res}"
-        elif op == '|':
-            res = abs(num1)
-            desc = f"|{num1}| = {res}"
-        elif op == '√':
-            if num1 < 0:
-                raise ValueError
-            res = math.sqrt(num1)
-            desc = f"√{num1} = {res}"
-        else:
-            return
+def add(): perform(lambda x, y: x + y, "+")
+def subtract(): perform(lambda x, y: x - y, "-")
+def multiply(): perform(lambda x, y: x * y, "*")
+def divide():
+    try:
+        x, y = float(entry1.get()), float(entry2.get())
+        if y == 0:
+            raise ZeroDivisionError("Không thể chia cho 0.")
+        update_result(f"{x} / {y} = {x / y}")
+    except Exception as e:
+        messagebox.showerror("Lỗi", str(e))
 
-        result.set(res)
-        update_history(desc)
-    except ZeroDivisionError:
-        messagebox.showerror("Lỗi", "Không thể chia cho 0.")
-    except ValueError:
-        messagebox.showerror("Lỗi", "Vui lòng nhập số hợp lệ.")
+def power(): perform(lambda x, y: x ** y, "^")
+def percentage(): perform(lambda x, y: (x / 100) * y, "%")
+def square_root():
+    try:
+        x = float(entry1.get())
+        if x < 0:
+            raise ValueError("Không thể căn bậc hai số âm.")
+        update_result(f"√{x} = {math.sqrt(x)}")
+    except Exception as e:
+        messagebox.showerror("Lỗi", str(e))
 
-# Giao diện tối/sáng
-def switch_theme():
-    global current_theme
-    if current_theme == "light":
-        set_dark_theme()
-    else:
-        set_light_theme()
+def absolute_value():
+    try:
+        x = float(entry1.get())
+        update_result(f"|{x}| = {abs(x)}")
+    except Exception as e:
+        messagebox.showerror("Lỗi", str(e))
 
-def set_dark_theme():
-    global current_theme
-    current_theme = "dark"
-    bg = "#2e2e2e"
-    fg = "#ffffff"
-    entry_bg = "#3a3a3a"
+def perform(operation, op_symbol):
+    try:
+        x, y = float(entry1.get()), float(entry2.get())
+        res = operation(x, y)
+        update_result(f"{x} {op_symbol} {y} = {res}")
+    except Exception as e:
+        messagebox.showerror("Lỗi", str(e))
 
+def toggle_theme():
+    global is_dark
+    is_dark = not is_dark
+    bg = "#2e2e2e" if is_dark else "SystemButtonFace"
+    fg = "#ffffff" if is_dark else "#000000"
     root.configure(bg=bg)
     for widget in root.winfo_children():
-        if isinstance(widget, (tk.Label, tk.Button)):
+        try:
             widget.configure(bg=bg, fg=fg)
-        elif isinstance(widget, tk.Entry):
-            widget.configure(bg=entry_bg, fg=fg, insertbackground=fg)
-    history_box.configure(bg=entry_bg, fg=fg, insertbackground=fg)
+        except:
+            pass
 
-def set_light_theme():
-    global current_theme
-    current_theme = "light"
-    bg = "#f0f0f0"
-    fg = "#000000"
-    entry_bg = "#ffffff"
+def toggle_transparent():
+    root.attributes("-alpha", 0.85 if not transparent.get() else 1.0)
+    transparent.set(not transparent.get())
 
-    root.configure(bg=bg)
-    for widget in root.winfo_children():
-        if isinstance(widget, (tk.Label, tk.Button)):
-            widget.configure(bg=bg, fg=fg)
-        elif isinstance(widget, tk.Entry):
-            widget.configure(bg=entry_bg, fg=fg, insertbackground=fg)
-    history_box.configure(bg=entry_bg, fg=fg, insertbackground=fg)
+# Giao diện chính
+root = tk.Tk()
+root.title("🧮 Máy tính bỏ túi nâng cao")
+root.geometry("500x600")
 
-# Menu theme
-menu = tk.Menu(root)
-theme_menu = tk.Menu(menu, tearoff=0)
-theme_menu.add_command(label="Chuyển đổi Sáng/Tối", command=switch_theme)
-menu.add_cascade(label="🎨 Giao diện", menu=theme_menu)
-root.config(menu=menu)
+is_dark = False
+transparent = tk.BooleanVar(value=False)
 
-# Widgets
+# Biểu thức
+tk.Label(root, text="Nhập biểu thức:").pack()
+expression_entry = tk.Entry(root, width=40)
+expression_entry.pack()
+tk.Button(root, text="Tính biểu thức", command=calculate_expression).pack(pady=5)
+
+# Nhập số cơ bản
 tk.Label(root, text="Số thứ nhất:").pack()
 entry1 = tk.Entry(root)
 entry1.pack()
-
 tk.Label(root, text="Số thứ hai:").pack()
 entry2 = tk.Entry(root)
 entry2.pack()
 
+# Kết quả
 result = tk.StringVar()
-tk.Label(root, text="Kết quả:", font=('Arial', 12, 'bold')).pack(pady=5)
-tk.Entry(root, textvariable=result, state='readonly').pack()
+tk.Label(root, text="Kết quả:", font=('Arial', 12, 'bold')).pack()
+tk.Entry(root, textvariable=result, state='readonly', width=40).pack(pady=5)
 
 # Nút chức năng
-buttons = [
-    ("Cộng", '+'), ("Trừ", '-'), ("Nhân", '*'), ("Chia", '/'),
-    ("Lũy thừa", '^'), ("Căn bậc hai (số 1)", '√'),
-    ("Phần trăm (x% của y)", '%'), ("Giá trị tuyệt đối (số 1)", '|')
-]
-for text, op in buttons:
-    tk.Button(root, text=text, width=25, command=lambda o=op: calculate(o)).pack(pady=2)
+for text, func in [
+    ("Cộng", add), ("Trừ", subtract), ("Nhân", multiply), ("Chia", divide),
+    ("Lũy thừa", power), ("Căn bậc hai (số 1)", square_root),
+    ("Phần trăm (x% của y)", percentage), ("Giá trị tuyệt đối (số 1)", absolute_value)
+]:
+    tk.Button(root, text=text, width=25, command=func).pack(pady=1)
 
 # Lịch sử
-tk.Label(root, text="📜 Lịch sử tính toán:", font=('Arial', 12, 'bold')).pack(pady=5)
-history_box = scrolledtext.ScrolledText(root, height=10, state='disabled', wrap='word')
-history_box.pack(fill='both', expand=True, padx=10)
+tk.Label(root, text="🧾 Lịch sử tính toán:").pack(pady=(10, 0))
+history_listbox = tk.Listbox(root, height=6, width=50)
+history_listbox.pack()
+tk.Button(root, text="🗑 Xoá lịch sử", command=clear_history).pack(pady=5)
 
-tk.Button(root, text="🗑 Xoá lịch sử", width=20, command=clear_history).pack(pady=5)
-tk.Button(root, text="Thoát", width=20, command=root.quit).pack(pady=5)
+# Giao diện
+tk.Button(root, text="🌙 Chuyển giao diện sáng/tối", command=toggle_theme).pack()
+tk.Checkbutton(root, text="🔲 Giao diện trong suốt", variable=transparent, command=toggle_transparent).pack()
 
-# Khởi tạo giao diện sáng mặc định
-set_light_theme()
+# Thoát
+tk.Button(root, text="🚪 Thoát", command=root.quit).pack(pady=10)
 
 root.mainloop()
