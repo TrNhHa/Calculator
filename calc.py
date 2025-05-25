@@ -73,11 +73,13 @@ def toggle_theme():
     if is_dark:
         root.configure(bg="#f0f4f8")
         frame.configure(bg="#ffffff")
+        canvas.configure(bg="#f0f4f8")
         style.configure("TLabel", background="#f0f4f8", foreground="black")
         style.configure("TFrame", background="#ffffff")
     else:
         root.configure(bg="#1e1e1e")
         frame.configure(bg="#2e2e2e")
+        canvas.configure(bg="#1e1e1e")
         style.configure("TLabel", background="#1e1e1e", foreground="white")
         style.configure("TFrame", background="#2e2e2e")
     is_dark = not is_dark
@@ -87,15 +89,21 @@ root = tk.Tk()
 root.title("Máy tính nâng cao")
 root.geometry("480x660")
 root.configure(bg="#f0f4f8")
+root.attributes('-alpha', 0.92)  # Giao diện trong suốt
 
 style = ttk.Style()
 style.configure("TButton", font=("Arial", 12), padding=10)
 style.configure("TLabel", font=("Arial", 12), background="#f0f4f8")
 style.configure("TEntry", font=("Arial", 12))
 
+# Canvas cho hiệu ứng glass
+canvas = tk.Canvas(root, bg="#f0f4f8", highlightthickness=0)
+canvas.place(relx=0.5, rely=0.5, anchor=tk.CENTER, width=460, height=640)
+canvas.create_rectangle(10, 10, 450, 630, outline="", fill="#ffffff", width=0)
+
 # Khung chính
-frame = tk.Frame(root, bg="#ffffff", bd=2, relief=tk.GROOVE)
-frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER, width=440, height=620)
+frame = tk.Frame(canvas, bg="#ffffff")
+frame.place(x=10, y=10, width=440, height=620)
 
 # Biểu thức
 ttk.Label(frame, text="Biểu thức:").pack(pady=10)
